@@ -109,3 +109,4 @@ export default function ParticleBackground() {
 
   return <canvas ref={canvasRef} className="particle-bg" />
 }
+

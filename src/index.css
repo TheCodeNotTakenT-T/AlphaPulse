@@ -120,7 +120,95 @@ html, body, #root {
   100% { clip-path: inset(0); transform: translateX(0); }
 }
 
-/* Button Primary */
+/* ─── Volatility Band ──────────────────────────────────────────── */
+.volatility-band {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 9999;
+  transform-origin: left center;
+}
+
+/* ─── Smart Money Alert Toast ──────────────────────────────────── */
+.smart-money-alert {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  min-width: 280px;
+  max-width: 380px;
+}
+
+.smart-money-alert__accent {
+  width: 3px;
+  flex-shrink: 0;
+  border-radius: 16px 0 0 16px;
+}
+
+.smart-money-alert__body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  flex: 1;
+}
+
+.smart-money-alert__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.smart-money-alert__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.smart-money-alert__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.smart-money-alert__action {
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.smart-money-alert__meta {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.smart-money-alert__close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 150ms, background 150ms;
+  flex-shrink: 0;
+}
+
+.smart-money-alert__close:hover {
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.05);
+}
+
+/* ─── Button Primary ───────────────────────────────────────────── */
 .btn-primary {
   background: linear-gradient(135deg, var(--pulse-500), var(--signal-500));
   border: none;
@@ -157,7 +245,7 @@ html, body, #root {
   box-shadow: 0 2px 10px var(--pulse-glow);
 }
 
-/* Particle BG */
+/* ─── Particle BG ──────────────────────────────────────────────── */
 .particle-bg {
   position: fixed;
   inset: 0;
@@ -166,17 +254,7 @@ html, body, #root {
   opacity: 0.7;
 }
 
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-  .particle-bg { display: none; }
-  .core-orb { animation: none; }
-}
-
-/* Tab Indicator */
+/* ─── Tab Button ───────────────────────────────────────────────── */
 .tab-btn {
   position: relative;
   padding: 8px 20px;
@@ -199,8 +277,27 @@ html, body, #root {
   color: var(--pulse-400);
 }
 
-/* Hover Card */
+/* ─── Hover Card ───────────────────────────────────────────────── */
 .hover-card {
   transition: transform 0.1s ease, box-shadow 0.1s ease;
   will-change: transform;
+}
+
+/* ─── Reduced Motion ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .particle-bg { display: none; }
+  .core-orb { animation: none; }
+  .volatility-band { transition: none; }
+}
+
+/* ─── Mobile Responsive ───────────────────────────────────────── */
+@media (max-width: 640px) {
+  .smart-money-alert {
+    min-width: 260px;
+    max-width: calc(100vw - 2rem);
+  }
 }

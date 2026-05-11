@@ -1,21 +1,36 @@
 import React from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { X, Zap } from 'lucide-react'
-import { useApp } from '../context/AppContext'
-
-const WALLETS = [
-  { name: 'Solflare', color: '#FC822B' },
-  { name: 'Phantom', color: '#AB9FF2' },
-  { name: 'Backpack', color: '#E33E3F' },
-]
+import { useWallet } from '@solana/wallet-adapter-react'
 
 export default function WalletModal({ onClose }) {
-  const { connectWallet } = useApp()
+  const { wallets, select, connect, connecting } = useWallet()
 
-  const handleConnect = (walletName) => {
-    connectWallet()
-    onClose()
+  const handleConnect = async (walletName) => {
+    try {
+      select(walletName)
+      // Small delay to allow adapter to initialize after selection
+      setTimeout(async () => {
+        try {
+          await connect()
+        } catch (e) {
+          console.warn('Wallet connect error:', e)
+        }
+        onClose()
+      }, 100)
+    } catch (e) {
+      console.warn('Wallet selection error:', e)
+    }
   }
+
+  // Show detected wallets, fallback to hardcoded list if none detected
+  const walletList = wallets.length > 0
+    ? wallets.filter(w => w.readyState === 'Installed' || w.readyState === 'Loadable').slice(0, 5)
+    : []
+
+  const FALLBACK_WALLETS = [
+    { name: 'Solflare', color: '#FC822B', url: 'https://solflare.com' },
+  ]
 
   return (
     <motion.div
@@ -26,9 +41,9 @@ export default function WalletModal({ onClose }) {
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/60" style={{ backdropFilter: 'blur(8px)' }} />
 
-      {/* Drawer / Modal */}
+      {/* Modal */}
       <motion.div
         initial={{ y: 60, opacity: 0, scale: 0.95 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -51,31 +66,65 @@ export default function WalletModal({ onClose }) {
         </div>
 
         <div className="space-y-2">
-          {WALLETS.map((wallet, i) => (
-            <motion.button
-              key={wallet.name}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.08, type: 'spring', stiffness: 400, damping: 30 }}
-              onClick={() => handleConnect(wallet.name)}
-              className="w-full flex items-center gap-4 p-4 rounded-xl bg-void-2/50 border border-void-3 hover:border-pulse-500/30 transition-all hover:bg-void-2 group"
-            >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm"
-                style={{ background: wallet.color }}
+          {walletList.length > 0 ? (
+            walletList.map((wallet, i) => (
+              <motion.button
+                key={wallet.adapter.name}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.08, type: 'spring', stiffness: 400, damping: 30 }}
+                onClick={() => handleConnect(wallet.adapter.name)}
+                disabled={connecting}
+                className="w-full flex items-center gap-4 p-4 rounded-xl bg-void-2/50 border border-void-3 hover:border-pulse-500/30 transition-all hover:bg-void-2 group disabled:opacity-50"
               >
-                {wallet.name[0]}
-              </div>
-              <span className="font-medium text-text-primary group-hover:text-pulse-400 transition-colors">
-                {wallet.name}
-              </span>
-              <div className="ml-auto w-2 h-2 rounded-full bg-void-3 group-hover:bg-pulse-400 transition-colors" />
-            </motion.button>
-          ))}
+                <img
+                  src={wallet.adapter.icon}
+                  alt={wallet.adapter.name}
+                  className="w-10 h-10 rounded-xl"
+                />
+                <span className="font-medium text-text-primary group-hover:text-pulse-400 transition-colors">
+                  {wallet.adapter.name}
+                </span>
+                <div className="ml-auto flex items-center gap-2">
+                  {wallet.readyState === 'Installed' && (
+                    <span className="text-xs text-gain font-mono">Detected</span>
+                  )}
+                  <div className="w-2 h-2 rounded-full bg-void-3 group-hover:bg-pulse-400 transition-colors" />
+                </div>
+              </motion.button>
+            ))
+          ) : (
+            // Fallback: Show Solflare with install link
+            FALLBACK_WALLETS.map((wallet, i) => (
+              <motion.a
+                key={wallet.name}
+                href={wallet.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.08, type: 'spring', stiffness: 400, damping: 30 }}
+                className="w-full flex items-center gap-4 p-4 rounded-xl bg-void-2/50 border border-void-3 hover:border-pulse-500/30 transition-all hover:bg-void-2 group"
+              >
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm"
+                  style={{ background: wallet.color }}
+                >
+                  {wallet.name[0]}
+                </div>
+                <div>
+                  <span className="font-medium text-text-primary group-hover:text-pulse-400 transition-colors block">
+                    Install {wallet.name}
+                  </span>
+                  <span className="text-xs text-text-muted">Recommended wallet for Solana</span>
+                </div>
+              </motion.a>
+            ))
+          )}
         </div>
 
         <p className="text-xs text-text-muted mt-4 text-center">
-          Simulated connection. Switch to the Web3 agent for real wallet integration.
+          {connecting ? 'Connecting...' : 'Securely connect your Solana wallet'}
         </p>
       </motion.div>
     </motion.div>
