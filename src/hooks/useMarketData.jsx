@@ -39,7 +39,7 @@ export function useMarketData() {
         name: t.name || t.symbol || 'Unknown',
         price: t.price || 0,
         change1h: t.priceChange1hPercent ?? 0,
-        change24h: t.v24hChangePercent || 0,
+        change24h: t.priceChange24hPercent || 0,
         volume24h: t.v24hUSD || 0,
         marketCap: t.mc || t.marketCap || 0,
         address: t.address,

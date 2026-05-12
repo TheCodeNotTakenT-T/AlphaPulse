@@ -1,112 +1,105 @@
 import React, { useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Shield, TrendingUp, TrendingDown, Users, BarChart3, Lock, Unlock, ExternalLink, Zap } from 'lucide-react'
+import { X, Shield, TrendingUp, TrendingDown, Users, BarChart3, Lock, Unlock, ExternalLink } from 'lucide-react'
 import { useTokenDetail } from '../hooks/useTokenDetail'
 
-/**
- * OHLCVChart — Pure SVG area chart for token price history.
- * No chart library dependency — keeps bundle light.
- */
+function fmtLarge(n) {
+  if (!n || n === 0) return '—'
+  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`
+  if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`
+  if (n >= 1e3) return `$${(n / 1e3).toFixed(0)}K`
+  return `$${n.toFixed(2)}`
+}
+
 function OHLCVChart({ data }) {
-  const { path, areaPath, min, max, lastPrice, change } = useMemo(() => {
-    if (!data || data.length === 0) return { path: '', areaPath: '', min: 0, max: 0, lastPrice: 0, change: 0 }
-
+  const { path, areaPath, change, minP, maxP } = useMemo(() => {
+    if (!data || data.length === 0) return { path: '', areaPath: '', change: 0, minP: 0, maxP: 0 }
     const prices = data.map(d => d.c || d.close || d.value || 0).filter(p => p > 0)
-    if (prices.length === 0) return { path: '', areaPath: '', min: 0, max: 0, lastPrice: 0, change: 0 }
-
-    if (prices.length === 1) {
-      // Just a straight line if only 1 point
-      return {
-        path: `M 8,100 L 592,100`,
-        areaPath: `M 8,100 L 592,100 L 592,200 L 8,200 Z`,
-        min: prices[0],
-        max: prices[0],
-        lastPrice: prices[0],
-        change: 0
-      }
-    }
-
+    if (prices.length < 2) return { path: '', areaPath: '', change: 0, minP: 0, maxP: 0 }
     const minP = Math.min(...prices)
     const maxP = Math.max(...prices)
     const range = maxP - minP || 1
-
-    const w = 600
-    const h = 200
-    const padding = 8
-
-    const points = prices.map((p, i) => {
-      const x = padding + (i / (prices.length - 1)) * (w - padding * 2)
-      const y = padding + (1 - (p - minP) / range) * (h - padding * 2)
+    const w = 600, h = 200, pad = 8
+    const pts = prices.map((p, i) => {
+      const x = pad + (i / (prices.length - 1)) * (w - pad * 2)
+      const y = pad + (1 - (p - minP) / range) * (h - pad * 2)
       return `${x},${y}`
     })
-
-    const linePath = `M ${points.join(' L ')}`
-    const area = `${linePath} L ${w - padding},${h} L ${padding},${h} Z`
-
+    const linePath = `M ${pts.join(' L ')}`
     return {
       path: linePath,
-      areaPath: area,
-      min: minP,
-      max: maxP,
-      lastPrice: prices[prices.length - 1],
-      change: prices.length > 1 ? ((prices[prices.length - 1] - prices[0]) / prices[0]) * 100 : 0,
+      areaPath: `${linePath} L ${w - pad},${h} L ${pad},${h} Z`,
+      change: ((prices[prices.length - 1] - prices[0]) / prices[0]) * 100,
+      minP,
+      maxP,
     }
   }, [data])
 
   const positive = change >= 0
   const color = positive ? '#34D399' : '#F87171'
 
-  if (!data || data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-[200px] text-text-muted text-xs font-mono">
-        Chart data unavailable
-      </div>
-    )
+  function fmtPrice(p) {
+    if (!p) return '0'
+    if (p < 0.0001) return p.toExponential(2)
+    if (p < 0.001) return p.toFixed(6)
+    if (p < 1) return p.toFixed(4)
+    if (p < 1000) return p.toFixed(2)
+    return p.toLocaleString('en-US', { maximumFractionDigits: 0 })
   }
 
   if (!path) {
     return (
       <div className="flex items-center justify-center h-[200px] text-text-muted text-xs font-mono">
-        Processing chart data...
+        {!data || data.length === 0 ? 'Chart data unavailable' : 'Processing chart data...'}
       </div>
     )
   }
 
   return (
-    <div className="relative">
-      <svg viewBox="0 0 600 200" className="w-full h-[200px]" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="chart-gradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="0.2" />
-            <stop offset="100%" stopColor={color} stopOpacity="0.01" />
-          </linearGradient>
-        </defs>
-        <path d={areaPath} fill="url(#chart-gradient)" />
-        <path d={path} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-      <div className="absolute top-2 right-2 text-xs font-mono">
-        <span className={positive ? 'text-gain' : 'text-loss'}>
-          {positive ? '+' : ''}{change.toFixed(2)}% (24h)
-        </span>
+    <div className="relative flex gap-2">
+      {/* Y-axis labels */}
+      <div className="flex flex-col justify-between py-1 flex-shrink-0">
+        {[maxP, (maxP + minP) / 2, minP].map((p, i) => (
+          <span key={i} className="text-[9px] font-mono text-text-muted leading-none">
+            ${fmtPrice(p)}
+          </span>
+        ))}
+      </div>
+      {/* Chart */}
+      <div className="flex-1 relative">
+        <svg viewBox="0 0 600 200" className="w-full h-[200px]" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="chart-gradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity="0.18" />
+              <stop offset="100%" stopColor={color} stopOpacity="0.01" />
+            </linearGradient>
+          </defs>
+          {/* Grid lines */}
+          {[0.25, 0.5, 0.75].map((t, i) => (
+            <line key={i} x1="8" y1={8 + t * 184} x2="592" y2={8 + t * 184}
+              stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+          ))}
+          <path d={areaPath} fill="url(#chart-gradient)" />
+          <path d={path} fill="none" stroke={color} strokeWidth="1.8"
+            strokeLinecap="round" strokeLinejoin="round"
+            style={{ filter: `drop-shadow(0 0 3px ${color}88)` }} />
+        </svg>
+        <div className="absolute top-1 right-1">
+          <span className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded ${positive ? 'bg-gain/10 text-gain' : 'bg-loss/10 text-loss'}`}>
+            {positive ? '+' : ''}{change.toFixed(2)}%
+          </span>
+        </div>
       </div>
     </div>
   )
 }
 
-/**
- * SignalGauge — Radial gauge showing buy/sell pressure ratio.
- * Score 0 = full bearish (needle left), 0.5 = neutral (needle top), 1 = full bullish (needle right)
- */
 function SignalGauge({ score }) {
-  // Clamp score to 0-1 range
   const s = Math.max(0, Math.min(1, score))
-  // Map score to angle: 0 → -180° (left), 0.5 → -90° (top), 1 → 0° (right)
   const angleDeg = -180 + s * 180
   const angleRad = (angleDeg * Math.PI) / 180
-  // Needle endpoint (pivot is at center-bottom of the semicircle)
   const needleX = 50 + Math.cos(angleRad) * 30
   const needleY = 50 + Math.sin(angleRad) * 30
-
   const color = s > 0.6 ? '#34D399' : s > 0.4 ? '#22D1EE' : '#F87171'
   const label = s > 0.6 ? 'BULLISH' : s > 0.4 ? 'NEUTRAL' : 'BEARISH'
 
@@ -114,25 +107,14 @@ function SignalGauge({ score }) {
     <div className="flex flex-col items-center gap-2">
       <div className="relative w-24 h-14 overflow-hidden">
         <svg viewBox="0 0 100 55" className="w-full h-full">
-          {/* Background arc */}
           <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--void-3)" strokeWidth="4" strokeLinecap="round" />
-          {/* Filled arc — strokeDasharray controls how much of the 126-unit arc is filled */}
           <path
             d="M 10 50 A 40 40 0 0 1 90 50"
-            fill="none"
-            stroke={color}
-            strokeWidth="4"
-            strokeLinecap="round"
+            fill="none" stroke={color} strokeWidth="4" strokeLinecap="round"
             strokeDasharray={`${s * 126} 126`}
             style={{ filter: `drop-shadow(0 0 4px ${color})` }}
           />
-          {/* Needle — pivots from (50,50) and points into the arc */}
-          <line
-            x1="50" y1="50"
-            x2={needleX}
-            y2={needleY}
-            stroke={color} strokeWidth="2" strokeLinecap="round"
-          />
+          <line x1="50" y1="50" x2={needleX} y2={needleY} stroke={color} strokeWidth="2" strokeLinecap="round" />
           <circle cx="50" cy="50" r="3" fill={color} />
         </svg>
       </div>
@@ -142,13 +124,9 @@ function SignalGauge({ score }) {
   )
 }
 
-/**
- * TrustBadge — Visual trust score indicator.
- */
 function TrustBadge({ score }) {
   const color = score >= 80 ? '#34D399' : score >= 50 ? '#FBBF24' : '#F87171'
   const label = score >= 80 ? 'High Trust' : score >= 50 ? 'Moderate' : 'Caution'
-
   return (
     <div className="flex items-center gap-2">
       <Shield size={14} style={{ color }} />
@@ -158,10 +136,7 @@ function TrustBadge({ score }) {
           <span className="text-xs font-mono text-text-muted">{score}/100</span>
         </div>
         <div className="h-1.5 bg-void-2 rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${score}%`, background: color }}
-          />
+          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${score}%`, background: color }} />
         </div>
       </div>
     </div>
@@ -179,13 +154,26 @@ function formatVol(vol) {
   return `$${vol.toFixed(0)}`
 }
 
-/**
- * TokenDetailDrawer — Slide-up panel showing full token intel.
- */
+function formatPrice(price) {
+  if (!price || price === 0) return '0.00'
+  if (price < 0.001) return price.toFixed(7)
+  if (price < 1) return price.toFixed(4)
+  if (price < 100) return price.toFixed(2)
+  return price.toLocaleString('en-US', { maximumFractionDigits: 2 })
+}
+
 export default function TokenDetailDrawer({ token, onClose }) {
   const { data, loading } = useTokenDetail(token?.address)
 
+  const openSwap = () => {
+    window.open(`https://jup.ag/swap/SOL-${token.address}`, '_blank')
+  }
+
   if (!token) return null
+
+  const livePrice = data?.overview?.price || token?.price || 0
+  const change24h = token?.change24h || 0
+  const changePositive = change24h >= 0
 
   return (
     <AnimatePresence>
@@ -196,20 +184,26 @@ export default function TokenDetailDrawer({ token, onClose }) {
         className="fixed inset-0 z-[100] flex items-end justify-center"
         onClick={onClose}
       >
-        {/* Backdrop */}
         <div className="absolute inset-0 bg-black/50" style={{ backdropFilter: 'blur(4px)' }} />
 
-        {/* Drawer */}
         <motion.div
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', stiffness: 300, damping: 30, mass: 0.8 }}
-          className="relative z-10 w-full max-w-3xl glass-panel rounded-t-2xl overflow-hidden max-h-[85vh] overflow-y-auto"
+          className="relative z-10 w-full max-w-3xl glass-panel rounded-t-2xl max-h-[85vh] overflow-y-auto"
           onClick={e => e.stopPropagation()}
         >
-          {/* Header */}
-          <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-void-3/50" style={{ background: 'rgba(7,8,10,0.95)', backdropFilter: 'blur(12px)' }}>
+          {/* Drag Handle */}
+          <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+            <div className="w-10 h-1 rounded-full bg-void-3/60" />
+          </div>
+
+          {/* ── Header ── */}
+          <div
+            className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-void-3/50"
+            style={{ background: 'rgba(7,8,10,0.95)', backdropFilter: 'blur(12px)' }}
+          >
             <div className="flex items-center gap-3">
               {token.logoURI ? (
                 <img src={token.logoURI} alt={token.symbol} className="w-10 h-10 rounded-full" />
@@ -221,41 +215,100 @@ export default function TokenDetailDrawer({ token, onClose }) {
               <div>
                 <h2 className="font-display font-bold text-lg">{token.symbol}</h2>
                 <p className="text-xs text-text-muted">{token.name}</p>
+                {livePrice > 0 && (
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-sm font-mono font-semibold text-text-primary">${formatPrice(livePrice)}</span>
+                    <span className={`text-[10px] font-mono font-medium ${changePositive ? 'text-gain' : 'text-loss'}`}>
+                      {changePositive ? '+' : ''}{change24h.toFixed(1)}%
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
+
             <div className="flex items-center gap-2">
-              <a
-                href={`https://jup.ag/swap/SOL-${token.address}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#C7F284] to-[#00BEF0] text-void-0 font-bold text-xs hover:opacity-90 transition-opacity"
-                title="Trade on Jupiter"
+              <button
+                onClick={openSwap}
+                style={{
+                  background: 'rgba(199,242,132,0.08)',
+                  border: '1px solid rgba(199,242,132,0.25)',
+                  color: '#C7F284',
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  letterSpacing: '0.04em',
+                  padding: '8px 14px',
+                  borderRadius: '8px',
+                  transition: 'all 180ms ease',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'rgba(199,242,132,0.5)'
+                  e.currentTarget.style.background = 'rgba(199,242,132,0.14)'
+                  e.currentTarget.style.boxShadow = '0 0 16px rgba(199,242,132,0.12)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = 'rgba(199,242,132,0.25)'
+                  e.currentTarget.style.background = 'rgba(199,242,132,0.08)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
+                title="Execute swap via Jupiter"
               >
-                <Zap size={12} />
-                Trade on Jupiter
-              </a>
+                <svg width="10" height="14" viewBox="0 0 10 14" fill="none"
+                  style={{ animation: 'jup-pulse 2s infinite ease-in-out' }}>
+                  <path d="M5.8 0L0 8h4.2L3.2 14 10 5.5H5.5L5.8 0z" fill="#C7F284" />
+                </svg>
+                Execute Swap
+              </button>
+
               <div className="w-px h-4 bg-void-3/50 mx-1" />
+
               <a
                 href={`https://birdeye.so/token/${token.address}?chain=solana`}
-                target="_blank"
-                rel="noopener noreferrer"
+                target="_blank" rel="noopener noreferrer"
                 className="p-2 rounded-lg hover:bg-void-2 transition-colors text-text-muted hover:text-pulse-400"
                 title="View on Birdeye"
               >
                 <ExternalLink size={16} />
               </a>
-              <button onClick={onClose} className="p-2 rounded-lg hover:bg-void-2 transition-colors text-text-secondary">
+
+              <button
+                onClick={onClose}
+                className="p-2 rounded-lg hover:bg-void-2 transition-colors text-text-secondary"
+              >
                 <X size={18} />
               </button>
             </div>
           </div>
 
+          {/* ── Body ── */}
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <div className="w-8 h-8 border-2 border-pulse-400/30 border-t-pulse-400 rounded-full animate-spin" />
             </div>
           ) : (
             <div className="p-6 space-y-6">
+
+              {/* Stats Row */}
+              {data?.overview && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { label: 'Market Cap', value: fmtLarge(data.overview.mc) },
+                    { label: '24h Volume', value: fmtLarge(data.overview.v24hUSD) },
+                    { label: 'Liquidity',  value: fmtLarge(data.overview.liquidity) },
+                    { label: 'Holders',    value: data.overview.holder ? data.overview.holder.toLocaleString() : '—' },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex flex-col gap-0.5 px-3 py-2.5 rounded-xl bg-void-1/60 border border-void-3/40">
+                      <span className="text-[10px] font-medium text-text-muted uppercase tracking-wider">{label}</span>
+                      <span className="text-sm font-mono font-semibold text-text-primary">{value || '—'}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Price Chart */}
               <div>
                 <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -267,7 +320,7 @@ export default function TokenDetailDrawer({ token, onClose }) {
                 </div>
               </div>
 
-              {/* Signal Score + Trust Score */}
+              {/* Signal + Trust */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-void-1/50 rounded-xl p-4 border border-void-3/30">
                   <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">Signal Score</h3>
@@ -279,12 +332,20 @@ export default function TokenDetailDrawer({ token, onClose }) {
                   {data?.security && (
                     <div className="mt-3 space-y-1.5">
                       <div className="flex items-center gap-2 text-xs">
-                        {data.security.hasMintAuthority ? <Unlock size={10} className="text-loss" /> : <Lock size={10} className="text-gain" />}
-                        <span className="text-text-muted">Mint Authority: {data.security.hasMintAuthority ? 'Active' : 'Revoked'}</span>
+                        {data.security.hasMintAuthority
+                          ? <Unlock size={10} className="text-loss" />
+                          : <Lock size={10} className="text-gain" />}
+                        <span className="text-text-muted">
+                          Mint Authority: {data.security.hasMintAuthority ? 'Active' : 'Revoked'}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 text-xs">
-                        {data.security.hasFreezeAuthority ? <Unlock size={10} className="text-loss" /> : <Lock size={10} className="text-gain" />}
-                        <span className="text-text-muted">Freeze Authority: {data.security.hasFreezeAuthority ? 'Active' : 'None'}</span>
+                        {data.security.hasFreezeAuthority
+                          ? <Unlock size={10} className="text-loss" />
+                          : <Lock size={10} className="text-gain" />}
+                        <span className="text-text-muted">
+                          Freeze Authority: {data.security.hasFreezeAuthority ? 'Active' : 'None'}
+                        </span>
                       </div>
                     </div>
                   )}
@@ -298,7 +359,6 @@ export default function TokenDetailDrawer({ token, onClose }) {
                   Top Traders (24h)
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Top Buyers */}
                   <div className="bg-void-1/50 rounded-xl p-3 border border-void-3/30">
                     <div className="flex items-center gap-2 mb-2">
                       <TrendingUp size={12} className="text-gain" />
@@ -323,7 +383,6 @@ export default function TokenDetailDrawer({ token, onClose }) {
                     )}
                   </div>
 
-                  {/* Top Sellers */}
                   <div className="bg-void-1/50 rounded-xl p-3 border border-void-3/30">
                     <div className="flex items-center gap-2 mb-2">
                       <TrendingDown size={12} className="text-loss" />
@@ -353,13 +412,22 @@ export default function TokenDetailDrawer({ token, onClose }) {
               {/* Attribution */}
               <div className="text-center pt-2 border-t border-void-3/30">
                 <p className="text-xs text-text-muted font-mono">
-                  Powered by <a href="https://birdeye.so" target="_blank" rel="noopener noreferrer" className="text-pulse-400 hover:underline">Birdeye</a> Data Intelligence
+                  Powered by{' '}
+                  <a href="https://birdeye.so" target="_blank" rel="noopener noreferrer"
+                    className="text-pulse-400 hover:underline">
+                    Birdeye
+                  </a>{' '}
+                  Data Intelligence
                 </p>
               </div>
+
             </div>
           )}
         </motion.div>
       </motion.div>
+
+      {/* Keyframe for bolt icon pulse */}
+      <style>{`@keyframes jup-pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
     </AnimatePresence>
   )
 }

@@ -29,6 +29,7 @@ export default function WalletModal({ onClose }) {
     : []
 
   const FALLBACK_WALLETS = [
+    { name: 'Phantom', color: '#AB9FF2', url: 'https://phantom.app' },
     { name: 'Solflare', color: '#FC822B', url: 'https://solflare.com' },
   ]
 

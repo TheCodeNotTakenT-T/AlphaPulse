@@ -25,7 +25,7 @@ A custom, zero-dependency SVG charting engine combined with a dynamic Signal Sco
 ## Commercial Potential & Business Model
 
 AlphaPulse is designed to scale beyond a read-only dashboard into a profitable execution terminal:
-1. **B2B Routing Fees:** The native Jupiter integration captures volume-based platform fees on every trade executed through the terminal.
+1. **B2B Routing Fees:** The architecture is designed to capture volume-based routing fees via Jupiter's referral program. Fee account registration is the final production step before revenue capture begins.
 2. **AlphaPulse Pro (SaaS):** The free-tier retail interface acts as a top-of-funnel acquisition channel. Institutional traders can upgrade to unlock unlimited wallet tracking, real-time webhooks, and full historical trader PnL exports.
 
 ## Technical Stack

@@ -4,9 +4,12 @@ import { fetchTopTraders } from './useBirdeyeApi'
 
 // ─── Known "interesting" token addresses to track ──────────────
 const TRACKED_TOKENS = [
-  { symbol: 'SOL', address: 'So11111111111111111111111111111111111111112' },
-  { symbol: 'JUP', address: 'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN' },
-  { symbol: 'WIF', address: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm' },
+  { symbol: 'SOL',   address: 'So11111111111111111111111111111111111111112' },
+  { symbol: 'JUP',   address: 'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN' },
+  { symbol: 'WIF',   address: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm' },
+  { symbol: 'BONK',  address: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' },
+  { symbol: 'JTO',   address: 'jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL' },
+  { symbol: 'PYTH',  address: 'HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3' },
 ]
 
 function shortenAddress(addr) {
@@ -109,9 +112,7 @@ export function useWhaleTracker() {
         }
       })
 
-      // Assign relative times
-      const times = ['just now', '2m ago', '5m ago', '8m ago', '12m ago', '18m ago', '25m ago', '30m ago']
-      const withTimes = top.map((t, i) => ({ ...t, time: times[i] || '30m+ ago' }))
+      const withTimes = top.map(t => ({ ...t, time: 'Last 24h' }))
 
       if (mounted.current) {
         setWhaleActivity(withTimes)

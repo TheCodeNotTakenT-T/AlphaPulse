@@ -56,9 +56,10 @@ function AnimatedNumber({ value, prefix = '', className = '', glitch = false }) 
       style={{ fontVariantNumeric: 'tabular-nums' }}
     >
       {prefix && <span className="animated-number__prefix">{prefix}</span>}
-      {str.split('').map((char, i) => (
-        <Digit key={i} char={char} id={i} />
-      ))}
+      {str.split('').map((char, i) => {
+        const posFromRight = str.length - 1 - i
+        return <Digit key={`slot-${posFromRight}`} char={char} id={posFromRight} />
+      })}
     </span>
   )
 }

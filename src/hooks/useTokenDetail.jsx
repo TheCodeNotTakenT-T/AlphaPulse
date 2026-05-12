@@ -6,16 +6,19 @@ import { fetchOHLCV, fetchTopTraders, fetchTokenSecurity, fetchTokenOverview } f
  *
  * Fetches comprehensive data for a single token when the detail drawer opens.
  * Uses 4 Birdeye endpoints: token_overview, ohlcv, top_traders, token_security.
+ *
+ * Uses a fetchIdRef counter to prevent StrictMode double-mount race conditions.
  */
 export function useTokenDetail(address) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const mounted = useRef(true)
+  const fetchIdRef = useRef(0)
 
   const fetchDetail = useCallback(async () => {
     if (!address) return
 
+    const fetchId = ++fetchIdRef.current
     setLoading(true)
     setError(null)
 
@@ -32,6 +35,9 @@ export function useTokenDetail(address) {
         fetchWithDelay(() => fetchTopTraders(address, '24h'), 400),
         fetchWithDelay(() => fetchTokenSecurity(address), 600),
       ])
+
+      // Bail if a newer fetch was initiated (StrictMode remount guard)
+      if (fetchId !== fetchIdRef.current) return
 
       const overviewData = overview.status === 'fulfilled' ? overview.value : null
       const ohlcvData = ohlcv.status === 'fulfilled' ? ohlcv.value : []
@@ -82,21 +88,19 @@ export function useTokenDetail(address) {
         trustScore = Math.max(0, trustScore)
       }
 
-      if (mounted.current) {
-        setData({
-          overview: overviewData,
-          ohlcv: ohlcvData,
-          topBuyers,
-          topSellers,
-          signalScore,
-          security: securityInfo,
-          trustScore,
-        })
-        setLoading(false)
-      }
+      setData({
+        overview: overviewData,
+        ohlcv: ohlcvData,
+        topBuyers,
+        topSellers,
+        signalScore,
+        security: securityInfo,
+        trustScore,
+      })
+      setLoading(false)
     } catch (err) {
       console.warn('[AlphaPulse] Token detail error:', err.message)
-      if (mounted.current) {
+      if (fetchId === fetchIdRef.current) {
         setError(err.message)
         setLoading(false)
       }
@@ -104,9 +108,8 @@ export function useTokenDetail(address) {
   }, [address])
 
   useEffect(() => {
-    mounted.current = true
     if (address) fetchDetail()
-    return () => { mounted.current = false }
+    return () => { fetchIdRef.current++ }
   }, [address, fetchDetail])
 
   return { data, loading, error, refetch: fetchDetail }

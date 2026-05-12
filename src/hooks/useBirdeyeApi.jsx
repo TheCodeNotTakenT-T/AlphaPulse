@@ -4,7 +4,7 @@ import { useRef, useCallback } from 'react'
 // Birdeye is the PRIMARY data intelligence engine for AlphaPulse.
 // Dashboard uses a lightweight fetcher to conserve compute units.
 // Detail drawer uses Birdeye for deep analytics (OHLCV, overview).
-const BIRDEYE_API_KEY = import.meta.env.VITE_BIRDEYE_API_KEY || 'd4485899ce684bb6893db4478f676eee'
+const BIRDEYE_API_KEY = import.meta.env.VITE_BIRDEYE_API_KEY || ''
 const API_BASE = 'https://public-api.birdeye.so'
 
 // Well-known Solana token addresses for the dashboard
@@ -195,7 +195,7 @@ export async function fetchTokenList(limit = 10) {
         symbol: c?.symbol || p.baseToken?.symbol || 'UNKNOWN',
         name: c?.name || p.baseToken?.name || 'Unknown',
         price: parseFloat(p.priceUsd) || 0,
-        v24hChangePercent: p.priceChange?.h24 || 0,
+        priceChange24hPercent: p.priceChange?.h24 || 0,
         priceChange1hPercent: p.priceChange?.h1 || (p.priceChange?.h24 ? p.priceChange.h24 / 24 : 0),
         v24hUSD: p.volume?.h24 || 0,
         mc: p.marketCap || 0,

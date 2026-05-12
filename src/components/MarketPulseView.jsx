@@ -106,6 +106,7 @@ function SignalDot({ buyVolume, sellVolume }) {
 
 export default function MarketPulseView({ tokens, loading }) {
   const { setSelectedToken, trendingAddresses } = useApp()
+  const [lastUpdated, setLastUpdated] = useState(null)
 
   const topMovers = useMemo(() => {
     return [...tokens]
@@ -116,7 +117,9 @@ export default function MarketPulseView({ tokens, loading }) {
   const solToken = tokens.find(t => t.symbol === 'SOL')
 
   const totalVolume = useMemo(() => {
-    return tokens.reduce((acc, t) => acc + (t.volume24h || 0), 0)
+    const vol = tokens.reduce((acc, t) => acc + (t.volume24h || 0), 0)
+    if (tokens.length > 0 && vol > 0) setLastUpdated(new Date())
+    return vol
   }, [tokens])
 
   const handleTokenClick = useCallback((token) => {
@@ -209,7 +212,12 @@ export default function MarketPulseView({ tokens, loading }) {
         <div className="px-5 py-3 border-b border-void-3/50 flex items-center gap-2">
           <BarChart3 size={16} className="text-signal-400" />
           <h3 className="font-display font-semibold text-sm">Solana Ecosystem</h3>
-          <span className="ml-auto text-xs text-text-muted font-mono">Click token for details</span>
+          {lastUpdated && (
+            <span className="text-[10px] font-mono text-text-muted ml-auto">
+              Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+          )}
+          {!lastUpdated && <span className="ml-auto text-xs text-text-muted font-mono">Click token for details</span>}
         </div>
 
         {/* Table Header */}
@@ -231,13 +239,13 @@ export default function MarketPulseView({ tokens, loading }) {
                 key={token.symbol}
                 variants={listItem}
                 onClick={() => handleTokenClick(token)}
-                className="grid grid-cols-12 px-5 py-3 items-center border-b border-void-3/20 hover:bg-void-2/30 transition-colors cursor-pointer group"
+                className="grid grid-cols-12 px-5 py-3.5 items-center border-b border-void-3/20 cursor-pointer group transition-all duration-150 hover:bg-pulse-500/[0.03] hover:shadow-[inset_3px_0_0_rgba(6,182,212,0.3)]"
               >
                 <div className="col-span-3 sm:col-span-3 flex items-center gap-3">
                   {token.logoURI ? (
                     <img src={token.logoURI} alt={token.symbol} className="w-8 h-8 rounded-full" />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-void-2 border border-void-3 flex items-center justify-center text-xs font-bold text-pulse-400 group-hover:border-pulse-500/30 transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-void-2 to-void-3 border border-void-3/80 flex items-center justify-center text-xs font-bold text-pulse-400 group-hover:border-pulse-400/40 group-hover:shadow-[0_0_10px_rgba(6,182,212,0.12)] transition-all duration-150">
                       {token.symbol?.slice(0, 2)}
                     </div>
                   )}

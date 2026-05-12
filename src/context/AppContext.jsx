@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { ConnectionProvider, WalletProvider, useWallet } from '@solana/wallet-adapter-react'
 import { SolflareWalletAdapter } from '@solana/wallet-adapter-solflare'
+import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
 import { clusterApiUrl } from '@solana/web3.js'
 
 const AppContext = createContext(null)
@@ -27,9 +28,9 @@ function AppStateProvider({ children }) {
   const walletPublicKey = wallet.publicKey?.toBase58() || null
 
   const connectWallet = useCallback(() => {
-    wallet.select('Solflare')
-    wallet.connect?.()
-  }, [wallet])
+    // Intentionally empty — callers should open WalletModal to let the user choose
+    // between Phantom and Solflare rather than hardcoding a wallet adapter here
+  }, [])
 
   const disconnectWallet = useCallback(() => {
     wallet.disconnect?.()
@@ -90,7 +91,10 @@ function AppStateProvider({ children }) {
 
 export function AppProvider({ children }) {
   const endpoint = useMemo(() => clusterApiUrl('mainnet-beta'), [])
-  const wallets = useMemo(() => [new SolflareWalletAdapter()], [])
+  const wallets = useMemo(() => [
+    new PhantomWalletAdapter(),
+    new SolflareWalletAdapter(),
+  ], [])
 
   return (
     <ConnectionProvider endpoint={endpoint}>

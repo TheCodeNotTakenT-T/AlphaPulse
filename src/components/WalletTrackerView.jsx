@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Eye, ArrowUpRight, ArrowDownRight, Clock, Wallet, RefreshCw } from 'lucide-react'
 import HoverCard from './HoverCard'
 import AnimatedNumber from './AnimatedNumber'
 import { useApp } from '../context/AppContext'
+import WalletModal from './WalletModal'
 import { useWalletPortfolio } from '../hooks/useWalletPortfolio'
 import { useWhaleTracker } from '../hooks/useWhaleTracker'
 
@@ -29,7 +30,8 @@ function formatUSD(val) {
 }
 
 export default function WalletTrackerView() {
-  const { walletConnected, walletPublicKey, connectWallet } = useApp()
+  const { walletConnected, walletPublicKey } = useApp()
+  const [showWalletModal, setShowWalletModal] = useState(false)
   const { holdings, totalValue, loading: portfolioLoading, refetch } = useWalletPortfolio(walletPublicKey)
   const { whaleActivity, loading: whaleLoading } = useWhaleTracker()
 
@@ -108,7 +110,7 @@ export default function WalletTrackerView() {
           <Wallet size={32} className="text-text-muted mx-auto mb-3" />
           <p className="text-text-secondary text-sm mb-3">Connect your wallet to track your portfolio</p>
           <p className="text-xs text-text-muted mb-4">Real-time holdings powered by Birdeye data intelligence</p>
-          <button onClick={connectWallet} className="btn-primary text-sm px-6 py-2">
+          <button onClick={() => setShowWalletModal(true)} className="btn-primary text-sm px-6 py-2">
             Connect Wallet
           </button>
         </HoverCard>
@@ -139,9 +141,8 @@ export default function WalletTrackerView() {
                 className="flex items-center gap-4 px-5 py-3 border-b border-void-3/20 hover:bg-void-2/30 transition-colors"
               >
                 {/* Action Icon */}
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                  tx.action === 'Sold' ? 'bg-loss/10' : 'bg-gain/10'
-                }`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${tx.action === 'Sold' ? 'bg-loss/10' : 'bg-gain/10'
+                  }`}>
                   {tx.action === 'Sold' ? (
                     <ArrowDownRight size={14} className="text-loss" />
                   ) : (
@@ -178,7 +179,7 @@ export default function WalletTrackerView() {
           <div className="p-8 text-center">
             <Eye size={24} className="text-text-muted mx-auto mb-2" />
             <p className="text-xs text-text-muted font-mono">No whale activity detected yet</p>
-            <p className="text-xs text-text-muted mt-1">Monitoring SOL, JUP, BONK, WIF, RAY</p>
+            <p className="text-xs text-text-muted mt-1">Monitoring SOL, JUP, WIF, BONK, JTO, PYTH</p>
           </div>
         )}
       </div>
@@ -189,6 +190,9 @@ export default function WalletTrackerView() {
           Powered by <span className="text-pulse-400">Birdeye</span> on-chain intelligence
         </p>
       </div>
+      {showWalletModal && (
+        <WalletModal onClose={() => setShowWalletModal(false)} />
+      )}
     </motion.div>
   )
 }
