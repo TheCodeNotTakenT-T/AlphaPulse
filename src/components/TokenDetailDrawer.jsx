@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Shield, TrendingUp, TrendingDown, Users, BarChart3, Lock, Unlock, ExternalLink } from 'lucide-react'
+import { X, Shield, TrendingUp, TrendingDown, Users, BarChart3, Lock, Unlock, ExternalLink, Zap } from 'lucide-react'
 import { useTokenDetail } from '../hooks/useTokenDetail'
 
 /**
@@ -223,7 +223,18 @@ export default function TokenDetailDrawer({ token, onClose }) {
                 <p className="text-xs text-text-muted">{token.name}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <a
+                href={`https://jup.ag/swap/SOL-${token.address}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#C7F284] to-[#00BEF0] text-void-0 font-bold text-xs hover:opacity-90 transition-opacity"
+                title="Trade on Jupiter"
+              >
+                <Zap size={12} />
+                Trade on Jupiter
+              </a>
+              <div className="w-px h-4 bg-void-3/50 mx-1" />
               <a
                 href={`https://birdeye.so/token/${token.address}?chain=solana`}
                 target="_blank"

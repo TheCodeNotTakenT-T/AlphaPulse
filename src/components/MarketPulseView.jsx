@@ -39,9 +39,8 @@ function ChangeTag({ value }) {
   const v = value || 0
   const positive = v >= 0
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-mono font-medium ${
-      positive ? 'bg-gain/10 text-gain' : 'bg-loss/10 text-loss'
-    }`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-mono font-medium ${positive ? 'bg-gain/10 text-gain' : 'bg-loss/10 text-loss'
+      }`}>
       {positive ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
       {positive ? '+' : ''}{v.toFixed(1)}%
     </span>

@@ -196,7 +196,7 @@ export async function fetchTokenList(limit = 10) {
         name: c?.name || p.baseToken?.name || 'Unknown',
         price: parseFloat(p.priceUsd) || 0,
         v24hChangePercent: p.priceChange?.h24 || 0,
-        priceChange1hPercent: p.priceChange?.h1 || 0,
+        priceChange1hPercent: p.priceChange?.h1 || (p.priceChange?.h24 ? p.priceChange.h24 / 24 : 0),
         v24hUSD: p.volume?.h24 || 0,
         mc: p.marketCap || 0,
         address: addr,
