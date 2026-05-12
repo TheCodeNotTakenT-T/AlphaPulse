@@ -41,5 +41,6 @@ AlphaPulse/
 ├── package.json
 ├── postcss.config.js
 ├── tailwind.config.js
-└── vite.config.js
+├── vite.config.js
+└── preview.png
 ```

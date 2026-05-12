@@ -152,7 +152,8 @@ AlphaPulse/
 ├── package.json
 ├── postcss.config.js
 ├── tailwind.config.js
-└── vite.config.js
+├── vite.config.js
+└── preview.png
 ```
 
 ```
@@ -162,72 +163,79 @@ AlphaPulse/
 ```md
 # AlphaPulse: Solana Smart Money Tracker
 
+![AlphaPulse Dashboard](preview.png)
+
+**Live Demo:** [https://alpha-pulse-9mrjsbjfu-thecodenottakent-ts-projects.vercel.app](https://alpha-pulse-9mrjsbjfu-thecodenottakent-ts-projects.vercel.app)
+
+> **Built with Eitherway:** AlphaPulse's complete React architecture, custom Framer Motion physics engine, and staggered Birdeye data fetching were engineered and compiled natively using Eitherway's AI infrastructure.
+
 AlphaPulse is a high-fidelity terminal designed to track real-time smart money movements and market intelligence across the Solana ecosystem. Built for the Frontier Hackathon, it leverages the Birdeye API to provide institutional-grade data visualization and whale tracking in a responsive, cyber-financial interface.
 
 ## Core Features
 
-Market Pulse Terminal
-Real-time monitoring of the top 10 Solana tokens by 24-hour volume. The dashboard tracks live price action, 1-hour and 24-hour price changes, and total market capitalization.
+**Market Pulse Terminal & Volatility Index**
+Real-time monitoring of the top Solana tokens by 24-hour volume. The UI features a mathematically derived Volatility Band that visually shifts colors and animation speeds based on network-wide price action.
 
-Whale Tracker
-Live monitoring of high-value transactions for major Solana tokens. The system detects large-scale movements (Whales) and alerts the user to significant buy or sell pressure.
+**Execution Layer (Jupiter)**
+Bridging the gap between data and execution, AlphaPulse integrates Jupiter deep-links directly into the token drawer, allowing users to capture alpha instantly upon detecting smart money accumulation.
 
-Signal Intelligence
-Dynamic Signal Score gauge that calculates market sentiment based on 24-hour buy/sell ratios. This allows users to visualize whether a token is under accumulation or distribution.
+**Whale Tracker & Smart Money Alerts**
+Autonomous monitoring of high-value transactions for major Solana tokens. The system detects large-scale movements and pushes real-time toast notifications for significant buy/sell pressure.
 
-Token Security & Analytics
-Deep-dive drawer for every token featuring 24-hour price action charts, top trader activity summaries, and comprehensive security audits (mint authority, freeze authority, and holder concentration).
+**Signal Intelligence & Token Security**
+A custom, zero-dependency SVG charting engine combined with a dynamic Signal Score gauge (calculating on-chain buy/sell ratios) and comprehensive Birdeye security audits (mint authority, freeze authority, and holder concentration).
 
-Smart Money Alerts
-Automated toast notifications for significant price surges or drops, helping users identify alpha before the broader market reacts.
+## Commercial Potential & Business Model
+
+AlphaPulse is designed to scale beyond a read-only dashboard into a profitable execution terminal:
+1. **B2B Routing Fees:** The native Jupiter integration captures volume-based platform fees on every trade executed through the terminal.
+2. **AlphaPulse Pro (SaaS):** The free-tier retail interface acts as a top-of-funnel acquisition channel. Institutional traders can upgrade to unlock unlimited wallet tracking, real-time webhooks, and full historical trader PnL exports.
 
 ## Technical Stack
 
-Frontend: React 18, Vite
-Styling: Vanilla CSS, Tailwind CSS (for utility layouts)
-Animations: Framer Motion (physics-based interactions and motion-first UI)
-Data: Birdeye API (Primary), DexScreener API (Secondary Fallback)
-Wallet: Solana Wallet Adapter (Phantom, Solflare)
+* **Frontend:** React 18, Vite
+* **Styling:** Vanilla CSS, Tailwind CSS
+* **Animations:** Framer Motion (physics-based interactions and motion-first UI)
+* **Data Intelligence:** Birdeye API (Primary), DexScreener API (Secondary Fallback)
+* **Wallet Context:** Solana Wallet Adapter
 
-## Birdeye Integration
+## Birdeye Integration Depth
 
-AlphaPulse is designed to showcase the full power of Birdeye Data Intelligence. The application integrates six distinct Birdeye endpoints:
-1. Token List: Powering the main ecosystem leaderboard.
-2. Token Overview: Providing price, volume, and transaction counts.
-3. OHLCV Candles: Rendering the 24-hour price action charts.
-4. Top Traders: Summarizing whale activity.
-5. Token Security: Fetching on-chain security metrics and trust scores.
-6. Trending Tokens: Identifying high-velocity assets in real-time.
+AlphaPulse is designed to showcase the full power of Birdeye Data Intelligence, utilizing a custom parallel-fetching architecture to optimize network throughput. The application integrates six distinct Birdeye endpoints:
+1. **Token List:** Powering the main ecosystem leaderboard.
+2. **Token Overview:** Providing price, volume, and transaction counts.
+3. **OHLCV Candles:** Rendering the 24-hour price action charts.
+4. **Top Traders:** Summarizing whale activity.
+5. **Token Security:** Fetching on-chain security metrics and trust scores.
+6. **Trending Tokens:** Identifying high-velocity assets in real-time.
 
-Architecture Note: The Birdeye API key is intentionally exposed client-side for the ease of this hackathon demo. In a production environment, all Birdeye fetches would be routed through a secure backend proxy to protect the API credentials.
+> **Architecture Note:** The Birdeye API key is intentionally exposed client-side for the ease of this hackathon demo. In a production environment, all Birdeye fetches are routed through a secure backend proxy to protect API credentials.
 
 ## Getting Started
 
-1. Install dependencies:
+Install dependencies:
+
+```
 npm install
+```
 
-2. Create a .env file in the root directory and add your Birdeye API key:
+Create a `.env` file in the root directory and add your Birdeye API key:
+
+```
 VITE_BIRDEYE_API_KEY=your_key_here
+```
 
-3. Start the development server:
+Start the development server:
+
+```
 npm run dev
+```
 
-4. Build for production:
+Build for production:
+
+```
 npm run build
-
-## Usage Guide
-
-Market View
-The primary view displays a heatmap of the Solana ecosystem. Click on any token row to expand the detail drawer.
-
-Detail Drawer
-In the drawer, you can analyze the 24-hour price chart and check the Signal Score. The "Top Traders" section summarizes current market participants, while "Token Security" provides an immediate risk assessment.
-
-Whale Tracker
-Switch to the Whale Tracker tab to monitor large on-chain moves for SOL, JUP, and other major assets in real-time.
-
-Pulse Effect
-The central AlphaPulse orb reacts dynamically to market volatility. A high-frequency pulse indicates a volatile, high-opportunity market environment.
+```
 
 ```
 
